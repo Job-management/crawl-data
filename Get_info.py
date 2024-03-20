@@ -1,4 +1,4 @@
-from venv import logger 
+from venv import logger
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
 from time import sleep
@@ -7,6 +7,9 @@ from get_24 import get_company_name_24, get_title_24, get_job_24, get_headquater
 
 def get_profile_urls_24(driver, url):
     page_source = BeautifulSoup(driver.page_source, 'html.parser')
+    with open('page_source.txt', 'w') as f:
+        # Ghi dữ liệu vào tệp
+        f.write(str(page_source))
     try:
         class_name = 'relative lg:h-[115px] w-full flex rounded-sm border lg:mb-3 mb-2 lg:hover:shadow-md !hover:bg-white !bg-[#FFF5E7] border-se-blue-10'
         a = page_source.find_all('a', class_=class_name)
@@ -19,7 +22,7 @@ def get_profile_urls_24(driver, url):
     except Exception as e:
         logger.error(f"Error occurred while extracting profile URLs from {url}: {e}")
         return []
-    
+
 def get_profile_info_24(driver, url):
     try:
         driver.get(url)
@@ -37,7 +40,7 @@ def get_profile_info_24(driver, url):
         head_quater = get_headquater_24(page_source)
         description = get_Description_24(page_source)
         requirement = get_Requirement_24(page_source)
-        job = get_job_24(page_source)   
+        job = get_job_24(page_source)
         time = get_Time_24(page_source) #new
         place = get_Place_24(page_source)
         age = get_Age_24(page_source)
@@ -49,7 +52,7 @@ def get_profile_info_24(driver, url):
     except Exception as e:
         logger.error(f"Error occurred while scraping data from {url}: {e}")
         return []
-    
+
 def is_duplicated(info, data):
     for i in data:
         if i[1] == info[0] and i[2] == info[1] and i[3] == info[2] and i[4] == info[3] and i[5] == info[4] and i[6] == info[5] and i[7] == info[6] :
@@ -66,7 +69,7 @@ def get_vieclam24(driver, num_pages):
             driver.get(url)
             sleep(2)
             profile_urls = get_profile_urls_24(driver, url)
-            data_DB = get_data_from_DB()     
+            data_DB = get_data_from_DB()
             for i in profile_urls:
                 info = get_profile_info_24(driver, i)
                 print('>> Vieclam24:',info)
@@ -83,4 +86,4 @@ def get_vieclam24(driver, num_pages):
     except Exception as e:
         print(f"Error occurred while get data 24h: {e}")
         return []
-   
+
