@@ -1,47 +1,20 @@
 FROM python:3.10.2-bullseye
 
-WORKDIR /app/crawl-data
-
-# Install dependencies
-RUN apt-get update -y && apt-get install -y wget xvfb unzip jq
-
-# Install Google Chrome dependencies
-RUN apt-get install -y libxss1 libappindicator1 libgconf-2-4 \
-    fonts-liberation libasound2 libnspr4 libnss3 libx11-xcb1 libxtst6 lsb-release xdg-utils \
-    libgbm1 libnss3 libatk-bridge2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0
-
-
-# Fetch the latest version numbers and URLs for Chrome and ChromeDriver
-RUN curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json > /tmp/versions.json
-
-RUN CHROME_URL=$(jq -r '.channels.Stable.downloads.chrome[] | select(.platform=="linux64") | .url' /tmp/versions.json) && \
-    wget -q --continue -O /tmp/chrome-linux64.zip $CHROME_URL && \
-    unzip /tmp/chrome-linux64.zip -d /opt/chrome
-
-RUN chmod +x /opt/chrome/chrome-linux64/chrome
-
-RUN CHROMEDRIVER_URL=$(jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform=="linux64") | .url' /tmp/versions.json) && \
-    wget -q --continue -O /tmp/chromedriver-linux64.zip $CHROMEDRIVER_URL && \
-    unzip /tmp/chromedriver-linux64.zip -d /opt/chromedriver && \
-    chmod +x /opt/chromedriver/chromedriver-linux64/chromedriver
-
-RUN mkdir -p /app/crawl-data/chromedriver
-RUN mkdir -p /app/crawl-data/chrome
-
-RUN mv /opt/chromedriver/chromedriver-linux64 /app/crawl-data/chromedriver
-RUN mv /opt/chrome/chrome-linux64 /app/crawl-data/chrome
-
-RUN export PATH=$PATH:/app/crawl-data/chromedriver/chromedriver-linux64/chromedriver
+RUN apt-get update -y
+# We need wget to set up the PPA and xvfb to have a virtual screen and unzip to install the Chromedriver
+RUN apt-get install -y wget xvfb unzip
+# Set up the Chrome PPA
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+# Update the package list and install chrome
+RUN apt-get update -y
+RUN apt-get install -y google-chrome-stable
 # Set up Chromedriver Environment variables
-ENV CHROMEDRIVER_DIR /opt/chromedriver
+ENV CHROMEDRIVER_VERSION 97.0.4692.71
+ENV CHROMEDRIVER_DIR /chromedriver
+RUN mkdir $CHROMEDRIVER_DIR
+# Download and install Chromedriver
+RUN wget -q --continue -P $CHROMEDRIVER_DIR "http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+RUN unzip $CHROMEDRIVER_DIR/chromedriver* -d $CHROMEDRIVER_DIR
+# Put Chromedriver into the PATH
 ENV PATH $CHROMEDRIVER_DIR:$PATH
-
-# Clean upa
-RUN rm /tmp/chrome-linux64.zip /tmp/chromedriver-linux64.zip /tmp/versions.json
-COPY . .
-# python dependencies
-RUN pip install -r requirements.txt
-
-# Command to run the script
-# CMD ["python", "main.py"]
-ENTRYPOINT [ "bash" ]
