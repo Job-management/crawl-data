@@ -1,9 +1,11 @@
+from datetime import datetime
 from venv import logger
 from bs4 import BeautifulSoup
 from time import sleep
 from selenium.webdriver.common.by import By
 from pathlib import Path
 from importlib import import_module
+from selenium.webdriver.common.action_chains import ActionChains
 
 import sys
 
@@ -25,15 +27,18 @@ def get_content(driver):
             post_text = post.find_element(
                 By.CSS_SELECTOR, ".x1iorvi4.x1pi30zi.x1l90r2v.x1swvt13"
             )
-            post_link =post.find_element(By.CSS_SELECTOR, ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.xt0b8zv.xo1l8bm")
+            if not post_text:
+                continue
+            post_link = post.find_element(By.CSS_SELECTOR,
+                                          ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.xt0b8zv.xo1l8bm")
             link = post_link.get_attribute("href")
-            if not post_text:
-                continue
-            post_text = post.find_element(
-                By.CSS_SELECTOR, ".x1iorvi4.x1pi30zi.x1l90r2v.x1swvt13"
-            )
-            if not post_text:
-                continue
+            actions = ActionChains(driver)
+            actions.move_to_element(post_link).perform()
+            sleep(2)
+            post_created_at = driver.find_element(
+                By.CSS_SELECTOR,
+                ".x193iq5w.xeuugli.x13faqbe.x1vvkbs.xlh3980.xvmahel.x1n0sxbx.x1nxh6w3.x1sibtaa.xo1l8bm.xzsf02u"
+            ).text
             post_img = post.find_elements(By.TAG_NAME, "img")
             data = {"text": post_text.text, "link": link}
             if post_img:
@@ -41,14 +46,15 @@ def get_content(driver):
                 for img in post_img:
                     _class = img.get_attribute("class")
                     if not (
-                        _class
-                        == "x1ey2m1c xds687c x5yr21d x10l6tqk x17qophe x13vifvy xh8yej3 xl1xv1r"
+                            _class
+                            == "x1ey2m1c xds687c x5yr21d x10l6tqk x17qophe x13vifvy xh8yej3 xl1xv1r"
                     ):
                         continue
                     img_url = img.get_attribute("src")
                     img_alt = img.get_attribute("alt")
                     images.append({"link": img_url, "description": img_alt})
                 data["images"] = images
+                data["time"] = date_string_to_timestamp(post_created_at)
             content_string.append(data)
             rabbitMQChannel.publishMessage(data, "raw-data")
         except Exception as e:
@@ -99,7 +105,7 @@ def click_closeLogin_btn(driver):
 
 def get_posts(driver):
     try:
-        click_closeLogin_btn(driver)
+        # click_closeLogin_btn(driver)
         # scroll_browser(driver)
         # scroll_browser(driver)
         # scroll_browser(driver)
@@ -122,3 +128,26 @@ def get_facebook(driver):
     except Exception as e:
         print(f"Error occurred while get data facebook: {e}")
         return []
+
+
+def date_string_to_timestamp(date_string):
+    parts = date_string.split(' ')
+
+    # Lấy các thành phần của ngày, tháng, năm và thời gian
+    day = int(parts[1])
+    month = parts[2]
+    year = int(parts[3])
+    time = parts[5]
+
+    # Tạo một đối tượng datetime từ các phần tử đã lấy được
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+              'November', 'December']
+    month_number = months.index(month) + 1
+
+    date_time_str = f"{year}-{month_number:02d}-{day:02d} {time}"
+    date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M')
+
+    # Lấy timestamp py (s) convert to js timestamp (ms)
+    timestamp = int(date_time_obj.timestamp()) * 1000
+
+    return timestamp

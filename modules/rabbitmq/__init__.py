@@ -1,5 +1,5 @@
 import pika
-
+import json
 
 class RabbitMQChannel:
     _instance = None
@@ -19,7 +19,12 @@ class RabbitMQChannel:
         return self._channel
 
     def publishMessage(self, message, rk="", ex=""):
-        self._channel.basic_publish(exchange=ex, routing_key=rk, body=message)
+        # Chuyển đổi dictionary thành chuỗi JSON
+        message_json = json.dumps(message)
+
+        # Chuyển đổi chuỗi JSON thành bytes
+        message_bytes = message_json.encode('utf-8')
+        self._channel.basic_publish(exchange=ex, routing_key=rk, body=message_bytes)
 
     def close_connection(self):
         self._channel.close()
