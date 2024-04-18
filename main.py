@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from Get_info import get_vieclam24
 from DB import save_data_into_DB
 from time import sleep
+import pickle
 import sys
 from pathlib import Path
 from importlib import import_module
@@ -34,9 +35,15 @@ def main():
         )
         # with webdriver.Chrome(options=chrome_options, executable_path='/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver') as driver:
         driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.get("https://www.facebook.com/login/")
+        sleep(3)
+        cookies = pickle.load(open("cookies_test.pkl", "rb"))
+        for cookie in cookies:
+            driver.add_cookie(cookie)
         # data = get_vieclam24(driver, 3)
         facebook.get_facebook(driver)
-        # sleep(50)
+        sleep(50)
+        driver.close()
         # save_data_into_DB(data)
     except Exception as e:
         logger.error(f"Error occurred while scraping data: {e}")
