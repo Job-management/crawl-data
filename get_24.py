@@ -1,6 +1,6 @@
 from venv import logger
 def get_company_name_24(source):
-    return source.find('h3', class_='font-normal text-16 text-se-neutral-64 mb-4').get_text(' ', strip=True)
+    return source.find('h2', class_='font-normal text-16 text-se-neutral-64 mb-4').get_text(' ', strip=True)
 
 def get_title_24(source):
     return source.find('h1', class_='font-semibold text-18 md:text-24 leading-snug').get_text(' ', strip=True)
@@ -53,8 +53,8 @@ def get_Description_24(source):
     return div[0].get_text(' ', strip=True)
 
 def get_Date_24(source):
-    div = source.find_all('div', class_ ='ml-3 text-14 md:flex pt-0 md:pt-[5px]')
-    date_ = div[1].get_text(' ',strip=True)
+    h2 = source.find_all('h2', class_ ='ml-3 text-14 md:flex pt-0 md:pt-[5px] my-0')
+    date_ = h2[1].get_text(' ',strip=True)
     part = date_.find(':')
     return date_[part + 2:]
 
@@ -68,7 +68,7 @@ def get_Time_24(source):
     return time
 
 def get_Place_24(source):
-    div = source.find_all('div', class_ ='ml-3 text-14 md:flex pt-0 md:pt-[5px]')
+    div = source.find_all('h2', class_ ='ml-3 text-14 md:flex pt-0 md:pt-[5px] my-0')
     div_  = div[2].get_text(' ',strip=True)
     part = div_.find(':')
     return div_[part + 2:]
