@@ -8,7 +8,7 @@ def save_data_into_DB(data):
             user="root", password="root@", host="localhost"
         )
         cursor = connection.cursor()
-        query = "INSERT INTO `crawl_data`.`job_data` (`Title`, `Company_Name`, `Time`, `City`, `Age`, `Sexual`, `Probation_Time`, `Work_Way`, `Job`, `Place`, `Number_Employee`, `Experience`, `Level`, `Salary`, `Education`, `Right`, `Description`, `Requirement`, `Deadline`, `Source_Picture`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO `job-management`.`crawl_data` (`Title`, `Company_Name`, `Time`, `City`, `Age`, `Sexual`, `Probation_Time`, `Work_Way`, `Job`, `Place`, `Number_Employee`, `Experience`, `Level`, `Salary`, `Education`, `Right`, `Description`, `Requirement`, `Deadline`, `Source_Picture`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         for i in data:
             cursor.execute(query, i)
         connection.commit()
@@ -23,7 +23,7 @@ def create_database_if_not_exists(my_user, my_password):
             user=my_user, password=my_password, host="localhost"
         )
         cursor = connection.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS crawl_data")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS `job-management`")
         connection.close()
     except Exception as e:
         print(f"Error occurred while creating database: {e}")
@@ -32,11 +32,11 @@ def create_database_if_not_exists(my_user, my_password):
 def create_table_if_not_exists(my_user, my_password):
     try:
         connection = mysql.connector.connect(
-            user=my_user, password=my_password, host="localhost", database="crawl_data"
+            user=my_user, password=my_password, host="localhost", database="job-management"
         )
         cursor = connection.cursor()
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS job_data (
+            CREATE TABLE IF NOT EXISTS crawl_data (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 Title VARCHAR(255),
                 Company_Name VARCHAR(255),
@@ -64,15 +64,16 @@ def create_table_if_not_exists(my_user, my_password):
     except Exception as e:
         print(f"Error occurred while creating table: {e}")
 
+
 def get_data_from_DB(my_user, my_password):
     try:
         create_database_if_not_exists(my_user, my_password)
         create_table_if_not_exists(my_user, my_password)
         connection = mysql.connector.connect(
-            user=my_user, password=my_password, host="localhost"
+            user="root", password="root@", host="localhost"
         )
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM crawl_data.job_data")
+        cursor.execute("SELECT * FROM `job-management`.`crawl_data`")
         data = cursor.fetchall()
         connection.close()
         return data

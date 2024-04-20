@@ -69,7 +69,7 @@ def get_vieclam24(driver, num_pages):
             driver.get(url)
             sleep(2)
             profile_urls = get_profile_urls_24(driver, url)
-            data_DB = get_data_from_DB()
+            data_DB = get_data_from_DB("root", "root@")
             for _url in profile_urls:
                 info = get_profile_info_24(driver, _url)
                 print('>> Vieclam24:', info)
