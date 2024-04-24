@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 from importlib import import_module
 
+from get_topdev import get_job_topdev
+
 sys.path.append(str(Path(__file__).resolve().parent / "utils"))
 
 facebook = import_module("facebook")
@@ -25,13 +27,13 @@ def main():
     )  # This is important for some versions of Chrome
     chrome_options.add_argument("--remote-debugging-port=9222")  # This is recommended
     # Set path to Chrome binary
-    # chrome_options.binary_location = "/app/crawl-data/chrome/chrome-linux64"
+    chrome_options.binary_location = "./chrome-win64/chrome.exe"
     # chromedriver_path = r"/app/crawl-data/chromedriver/chromedriver-linux64/chromedriver.exe"
-    # print(chromedriver_path)
+
     try:
         print("==================")
         service = Service(
-            executable_path="/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver"
+            executable_path="./chromedriver-win64/chromedriver.exe"
         )
         # with webdriver.Chrome(options=chrome_options, executable_path='/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver') as driver:
         driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -40,15 +42,17 @@ def main():
         cookies = pickle.load(open("cookies_test.pkl", "rb"))
         for cookie in cookies:
             driver.add_cookie(cookie)
-        # data = get_vieclam24(driver, 3)
-        facebook.get_facebook(driver)
-        sleep(50)
+        data = get_vieclam24(driver, 3)
+        data = get_job_topdev(driver)
+        # facebook.get_facebook(driver)
+        sleep(3)
         driver.close()
-        # save_data_into_DB(data)
+        save_data_into_DB(data)
     except Exception as e:
         logger.error(f"Error occurred while scraping data: {e}")
     print(">> Done")
 
-
 if __name__ == "__main__":
     main()
+
+

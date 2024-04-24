@@ -1,1 +1,5 @@
 page_source.txt
+env
+modules
+chrome-win64
+chromedriver-win64
