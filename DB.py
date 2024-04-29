@@ -23,7 +23,7 @@ def get_data_from_DB():
             user="root", password="root@", host="localhost"
         )
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM crawl_data.job_data")
+        cursor.execute("SELECT * FROM `job-management`.`crawl_data`")
         data = cursor.fetchall()
         connection.close()
         return data
