@@ -2,14 +2,16 @@ import concurrent.futures
 from venv import logger
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.keys import Keys
 from Get_info import get_vieclam24
 from DB import save_data_into_DB
 from time import sleep
-import pickle
+from selenium.webdriver.common.by import By
 import sys
 from pathlib import Path
 from importlib import import_module
-
+import pickle
+from bs4 import BeautifulSoup
 sys.path.append(str(Path(__file__).resolve().parent / "utils"))
 
 facebook = import_module("facebook")
@@ -35,14 +37,21 @@ def main():
         )
         # with webdriver.Chrome(options=chrome_options, executable_path='/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver') as driver:
         driver = webdriver.Chrome(service=service, options=chrome_options)
-        driver.get("https://www.facebook.com/login/")
-        sleep(3)
-        cookies = pickle.load(open("cookies_test.pkl", "rb"))
-        for cookie in cookies:
-            driver.add_cookie(cookie)
-        # data = get_vieclam24(driver, 3)
-        facebook.get_facebook(driver)
-        # sleep(3)
+        # driver.get("https://www.facebook.com/login/")
+        driver.get("https://topdev.vn/viec-lam-it?src=topdev.vn&medium=mainmenu")
+        page_source = BeautifulSoup(driver.page_source, 'html.parser')
+        sleep(4500)
+        # userNAME = driver.find_element(By.ID, "email")
+        # userNAME.send_keys("vanthanhhuynhctc@gmail.com")
+
+        # passWork = driver.find_element(By.ID, "pass")
+        # passWork.send_keys("huynhvanthanh")
+
+        # passWork.send_keys(Keys.ENTER)
+
+        sleep(4)
+
+        pickle.dump(driver.get_cookies(), open("cookies_test.pkl", "wb"))
         driver.close()
         # save_data_into_DB(data)
     except Exception as e:

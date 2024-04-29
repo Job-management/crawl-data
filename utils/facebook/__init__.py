@@ -19,28 +19,32 @@ def get_content(driver):
     *   Handle get content (innerText) from div
     """
     rabbitMQChannel = rabbitmq.RabbitMQChannel()
-    content_string = []
+    contents = []
     cssSelector_postContainer = ".html-div.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd"
     postContainer = driver.find_elements(By.CSS_SELECTOR, cssSelector_postContainer)
     for post in postContainer:
+        data = {}
         try:
             post_text = post.find_element(
                 By.CSS_SELECTOR, ".x1iorvi4.x1pi30zi.x1l90r2v.x1swvt13"
             )
             if not post_text:
+                logger.error('post not found')
                 continue
             post_link = post.find_element(By.CSS_SELECTOR,
                                           ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.xt0b8zv.xo1l8bm")
             link = post_link.get_attribute("href")
             actions = ActionChains(driver)
             actions.move_to_element(post_link).perform()
-            sleep(2)
+            sleep(1)
             post_created_at = driver.find_element(
                 By.CSS_SELECTOR,
                 ".x193iq5w.xeuugli.x13faqbe.x1vvkbs.xlh3980.xvmahel.x1n0sxbx.x1nxh6w3.x1sibtaa.xo1l8bm.xzsf02u"
             ).text
+            data["time"] = date_string_to_timestamp(post_created_at)
             post_img = post.find_elements(By.TAG_NAME, "img")
-            data = {"text": post_text.text, "link": link}
+            data["text"] = post_text.text
+            data["link"] = link
             if post_img:
                 images = []
                 for img in post_img:
@@ -51,15 +55,15 @@ def get_content(driver):
                     ):
                         continue
                     img_url = img.get_attribute("src")
-                    img_alt = img.get_attribute("alt")
+                    img_alt = img.get_attribute("alt").replace('"', " ")
                     images.append({"link": img_url, "description": img_alt})
                 data["images"] = images
-                data["time"] = date_string_to_timestamp(post_created_at)
-            content_string.append(data)
+            contents.append(data)
             rabbitMQChannel.publishMessage(data, "raw-data")
         except Exception as e:
+            logger.error(e)
             continue
-    return content_string
+    return contents
 
 
 def scroll_browser(driver):
@@ -105,13 +109,18 @@ def click_closeLogin_btn(driver):
 
 def get_posts(driver):
     try:
+        print('close login popup')
         # click_closeLogin_btn(driver)
-        # scroll_browser(driver)
-        # scroll_browser(driver)
-        # scroll_browser(driver)
-        scroll_browser(driver)
-        click_seeMore_btn(driver)
+        scroll_num = 20
+        print('scroll: ', scroll_num)
+        for i in range(scroll_num):
+            scroll_browser(driver)
+            sleep(1)
+        print('see more')
+        # click_seeMore_btn(driver)
+        print('crawling post')
         posts = get_content(driver)
+        print(posts)
         return posts
     except Exception as e:
         logger.error(f"Error occurred while extracting profile URLs from: {e}")
@@ -125,6 +134,7 @@ def get_facebook(driver):
         sleep(3)
         posts = get_posts(driver)
         print(posts)
+        print(len(posts))
     except Exception as e:
         print(f"Error occurred while get data facebook: {e}")
         return []
