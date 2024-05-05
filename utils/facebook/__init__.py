@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from venv import logger
 from bs4 import BeautifulSoup
@@ -6,6 +7,8 @@ from selenium.webdriver.common.by import By
 from pathlib import Path
 from importlib import import_module
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import wait
+from selenium.webdriver.support import expected_conditions as EC
 
 import sys
 
@@ -18,33 +21,55 @@ def get_content(driver):
     """
     *   Handle get content (innerText) from div
     """
-    rabbitMQChannel = rabbitmq.RabbitMQChannel()
     contents = []
     cssSelector_postContainer = ".html-div.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd"
     postContainer = driver.find_elements(By.CSS_SELECTOR, cssSelector_postContainer)
+    print(len(postContainer))
+    count = 0
     for post in postContainer:
         data = {}
         try:
+            if not post.text:
+                continue
+
             post_text = post.find_element(
                 By.CSS_SELECTOR, ".x1iorvi4.x1pi30zi.x1l90r2v.x1swvt13"
             )
-            if not post_text:
+
+            if not post_text or post_text.text == '':
                 logger.error('post not found')
                 continue
-            post_link = post.find_element(By.CSS_SELECTOR,
-                                          ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.xt0b8zv.xo1l8bm")
-            link = post_link.get_attribute("href")
+
+            # data if not have see more
+            data["text"] = post_text.text
+
+            print('----------')
+            count = count + 1
+            print(count, ": " + post_text.text)
+            print('----------')
+
+            post_link = (post.find_element(By.CSS_SELECTOR,
+                                           ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.xt0b8zv.xo1l8bm"))
+            if post_link:
+                link = post_link.get_attribute("href")
+                data["link"] = link
+
+            # handle hover to date post and get post created date
             actions = ActionChains(driver)
             actions.move_to_element(post_link).perform()
-            sleep(1)
-            post_created_at = driver.find_element(
+            sleep(random.randint(1, 2))
+
+            post_created_at = (driver.find_element(
                 By.CSS_SELECTOR,
                 ".x193iq5w.xeuugli.x13faqbe.x1vvkbs.xlh3980.xvmahel.x1n0sxbx.x1nxh6w3.x1sibtaa.xo1l8bm.xzsf02u"
-            ).text
-            data["time"] = date_string_to_timestamp(post_created_at)
+            ))
+            if post_created_at:
+                post_created_at_str = post_created_at.text
+                data["time"] = date_string_to_timestamp(post_created_at_str)
+
+            # handle get post image
             post_img = post.find_elements(By.TAG_NAME, "img")
-            data["text"] = post_text.text
-            data["link"] = link
+
             if post_img:
                 images = []
                 for img in post_img:
@@ -58,11 +83,34 @@ def get_content(driver):
                     img_alt = img.get_attribute("alt").replace('"', " ")
                     images.append({"link": img_url, "description": img_alt})
                 data["images"] = images
-            contents.append(data)
-            rabbitMQChannel.publishMessage(data, "raw-data")
-        except Exception as e:
-            logger.error(e)
-            continue
+
+            see_more_btns = post_text.find_elements(
+                By.CSS_SELECTOR,
+                ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.xt0b8zv.xzsf02u.x1s688f",
+            )
+
+            if see_more_btns:
+                print('see_more_btn')
+                driver.execute_script("arguments[0].click();", see_more_btns[0])
+
+            # Get new post text after click see more button
+            post_texts = post.find_elements(
+                By.CSS_SELECTOR, ".x1iorvi4.x1pi30zi.x1l90r2v.x1swvt13"
+            )
+
+            if post_texts:
+                # data with see more data
+                data["text"] = post_texts[0].text
+
+            is_duplicate = any(data["text"] == item["text"] for item in contents)
+            if not is_duplicate:
+                contents.append(data)
+        except:
+            print('catch', data)
+            if "text" in data and "time" in data:
+                is_duplicate = any(data["text"] == item["text"] for item in contents)
+                if not is_duplicate:
+                    contents.append(data)
     return contents
 
 
@@ -76,7 +124,10 @@ def scroll_browser(driver):
     # Cuộn trang xuống đáy
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-    sleep(5)
+    # Cuộn lên lại
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 10);")
+
+    sleep(random.randint(2, 5))
 
 
 def click_seeMore_btn(driver):
@@ -110,29 +161,35 @@ def click_closeLogin_btn(driver):
 def get_posts(driver):
     try:
         print('close login popup')
+
         # click_closeLogin_btn(driver)
-        scroll_num = 20
+        scroll_num = 5
         print('scroll: ', scroll_num)
         for i in range(scroll_num):
+            print('scroll: ', i)
             scroll_browser(driver)
-            sleep(1)
+            sleep(random.randint(1, 2))
         print('see more')
         # click_seeMore_btn(driver)
         print('crawling post')
         posts = get_content(driver)
-        print(posts)
+
         return posts
     except Exception as e:
         logger.error(f"Error occurred while extracting profile URLs from: {e}")
         return []
 
 
-def get_facebook(driver):
+def get_facebook(driver, group_url):
     try:
-        url = "https://www.facebook.com/groups/vieclamCNTTDaNang"
+        rabbitMQChannel = rabbitmq.RabbitMQChannel()
+        url = group_url
         driver.get(url)
         sleep(3)
         posts = get_posts(driver)
+
+        for post in posts:
+            rabbitMQChannel.publishMessage(post, "raw-data")
         print(posts)
         print(len(posts))
     except Exception as e:

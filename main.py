@@ -1,5 +1,6 @@
 import concurrent.futures
 from venv import logger
+import threading
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from Get_info import get_vieclam24
@@ -14,6 +15,14 @@ sys.path.append(str(Path(__file__).resolve().parent / "utils"))
 
 facebook = import_module("facebook")
 
+def crawl_facebook(driver):
+    driver.get("https://www.facebook.com/login/")
+    sleep(3)
+    cookies = pickle.load(open("cookies_test.pkl", "rb"))
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+    facebook.get_facebook(driver, "https://www.facebook.com/groups/vieclamCNTTDaNang")
+    # facebook.get_facebook(driver, "https://www.facebook.com/kenhtuyendungdanang")
 
 def main():
     chrome_options = webdriver.ChromeOptions()
@@ -35,18 +44,19 @@ def main():
         )
         # with webdriver.Chrome(options=chrome_options, executable_path='/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver') as driver:
         driver = webdriver.Chrome(service=service, options=chrome_options)
-        driver.get("https://www.facebook.com/login/")
-        sleep(3)
-        cookies = pickle.load(open("cookies_test.pkl", "rb"))
-        for cookie in cookies:
-            driver.add_cookie(cookie)
-        # data = get_vieclam24(driver, 3)
-        facebook.get_facebook(driver)
+
+        # Handle crawl facebook
+        # crawl_facebook(driver)
+
+        #  Handle crawl vieclam24
+        data = get_vieclam24(driver, 3)
+
+        # Handle crawl topdev
         # sleep(3)
         driver.close()
-        # save_data_into_DB(data)
+        save_data_into_DB(data)
     except Exception as e:
-        logger.error(f"Error occurred while scraping data: {e}")
+        logger.error(f"Error occurred while scraping data: {str(e)}")
     print(">> Done")
 
 

@@ -1,5 +1,6 @@
 from venv import logger
 from bs4 import BeautifulSoup
+from datetime import datetime
 from selenium.webdriver.chrome.options import Options
 from time import sleep
 from DB import get_data_from_DB
@@ -23,11 +24,18 @@ def get_profile_urls_24(driver, url):
         logger.error(f"Error occurred while extracting profile URLs from {url}: {e}")
         return []
 
+def convertDateToTimestamp(date_str):
+    date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+
+    # Chuyển đổi đối tượng datetime thành timestamp
+    return date_obj.timestamp() * 1000
+
 def get_profile_info_24(driver, url):
     try:
         driver.get(url)
         sleep(2)
         page_source = BeautifulSoup(driver.page_source, 'html.parser')
+        images = []
         company_name = get_company_name_24(page_source)
         title = get_title_24(page_source)
         date = get_Date_24(page_source)
@@ -36,12 +44,12 @@ def get_profile_info_24(driver, url):
         level = get_level_24(page_source)
         num_of_employee = get_NumEmployee_24(page_source)
         edu = get_Edu_24(page_source)
-        src_pic = get_SrcPic_24(page_source)
+        src_pic = images.append({"description": company_name + date, "link": get_SrcPic_24(page_source)})
         head_quater = get_headquater_24(page_source)
         description = get_Description_24(page_source)
         requirement = get_Requirement_24(page_source)
         job = get_job_24(page_source)
-        time = get_Time_24(page_source) #new
+        time = convertDateToTimestamp(get_Time_24(page_source)) #new
         place = get_Place_24(page_source)
         age = get_Age_24(page_source)
         sex = get_Sex_24(page_source)
