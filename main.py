@@ -10,19 +10,32 @@ import pickle
 import sys
 from pathlib import Path
 from importlib import import_module
+from get_topdev import get_job_topdev
 
 sys.path.append(str(Path(__file__).resolve().parent / "utils"))
 
 facebook = import_module("facebook")
 
+
 def crawl_facebook(driver):
     driver.get("https://www.facebook.com/login/")
     sleep(3)
-    cookies = pickle.load(open("cookies_test.pkl", "rb"))
+    cookies = pickle.load(open("cookies_fb.pkl", "rb"))
     for cookie in cookies:
         driver.add_cookie(cookie)
     facebook.get_facebook(driver, "https://www.facebook.com/groups/vieclamCNTTDaNang")
     # facebook.get_facebook(driver, "https://www.facebook.com/kenhtuyendungdanang")
+
+def crawl_vieclam24h(driver):
+    driver.get("https://vieclam24h.vn/")
+    sleep(3)
+    cookies = pickle.load(open("cookies_vieclam24h.pkl", "rb"))
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+    return get_vieclam24(driver, 3)
+    # facebook.get_facebook(driver, "https://www.facebook.com/kenhtuyendungdanang")
+
+
 
 def main():
     chrome_options = webdriver.ChromeOptions()
@@ -49,12 +62,14 @@ def main():
         # crawl_facebook(driver)
 
         #  Handle crawl vieclam24
-        data = get_vieclam24(driver, 3)
+        data = crawl_vieclam24h(driver)
+        save_data_into_DB(data)
 
         # Handle crawl topdev
+        # data = get_job_topdev(driver)
+        # save_data_into_DB(data)
         # sleep(3)
         driver.close()
-        save_data_into_DB(data)
     except Exception as e:
         logger.error(f"Error occurred while scraping data: {str(e)}")
     print(">> Done")

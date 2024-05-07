@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from time import sleep
 from DB import get_data_from_DB
 from get_24 import get_company_name_24, get_title_24, get_job_24, get_headquater_24, get_NumEmployee_24, get_Exp_24, get_level_24, get_Salary_24,get_Edu_24, get_Requirement_24, get_Description_24, get_Date_24, get_SrcPic_24, get_Time_24, get_Place_24, get_Age_24, get_probation, get_Sex_24, get_Way_24, get_right_24
-
+from ai import detect
 def get_profile_urls_24(driver, url):
     page_source = BeautifulSoup(driver.page_source, 'html.parser')
     with open('page_source.txt', 'w') as f:
@@ -28,14 +28,13 @@ def convertDateToTimestamp(date_str):
     date_obj = datetime.strptime(date_str, '%d/%m/%Y')
 
     # Chuyển đổi đối tượng datetime thành timestamp
-    return date_obj.timestamp() * 1000
+    return int(date_obj.timestamp()) * 1000
 
 def get_profile_info_24(driver, url):
     try:
         driver.get(url)
         sleep(2)
         page_source = BeautifulSoup(driver.page_source, 'html.parser')
-        images = []
         company_name = get_company_name_24(page_source)
         title = get_title_24(page_source)
         date = get_Date_24(page_source)
@@ -44,7 +43,8 @@ def get_profile_info_24(driver, url):
         level = get_level_24(page_source)
         num_of_employee = get_NumEmployee_24(page_source)
         edu = get_Edu_24(page_source)
-        src_pic = images.append({"description": company_name + date, "link": get_SrcPic_24(page_source)})
+        src_pic = str(({"description": company_name + date, "src": get_SrcPic_24(page_source)}))
+        link = url
         head_quater = get_headquater_24(page_source)
         description = get_Description_24(page_source)
         requirement = get_Requirement_24(page_source)
@@ -56,7 +56,9 @@ def get_profile_info_24(driver, url):
         probation = get_probation(page_source)
         way = get_Way_24(page_source)
         right = get_right_24(page_source)
-        return [title, company_name, time, place, age, sex, probation, way, job, head_quater, num_of_employee, exp_year, level, salary, edu, right, description, requirement, date, src_pic]
+        type = "vieclam24h"
+        major_category_id = int(detect(title))
+        return [title, company_name, time, place, age, sex, probation, way, job, head_quater, num_of_employee, exp_year, level, salary, edu, right, description, requirement, date, src_pic, link, type, major_category_id]
     except Exception as e:
         logger.error(f"Error occurred while scraping data from {url}: {e}")
         return []

@@ -1,0 +1,56 @@
+
+major_category table:
+id	title
+1	y học
+2	Quản trị
+3	Công nghệ thông tin
+4	Sư phạm
+5	Ngôn ngữ Anh
+6	Ngôn ngữ Nga
+7	Ngôn ngữ Pháp
+8	Ngôn ngữ Trung Quốc
+9	Ngôn ngữ Nhật
+10	Ngôn ngữ Hàn Quốc
+11	Ngôn ngữ Thái Lan
+12	Khoa học xã hội
+13	Tài chính
+14	Luật
+15	Công nghệ sinh học
+16	Xây dựng
+17	Du lịch
+18	Khoa học y sinh
+19	Công nghệ nano
+20	Maketing
+21	Kế toán
+22	Khoa học dữ liệu
+23	Kinh tế
+24	Chương trình chính quy quốc tế
+25	Hóa học
+26	Báo chí
+27	Xã hội
+28	Quản lý tài nguyên và môi trường
+29	Tâm lý học
+30	Cơ khí
+31	Cơ điện tử
+32	Kỹ thuật ô tô
+33	Kỹ thuật nhiệt
+34	Điện tử viễn thông
+35	Tự động hóa
+36	Môi trường
+37	Kỹ thuật thực phẩm
+38	Kiến trúc
+39	Chế tạo máy
+40	Dầu khí
+41	Kỹ thuật tàu thủy
+42	Kỹ thuật điện
+43	Công nghệ thực phẩm
+44	Hệ thống công nghiệp
+45	Hệ thống nhúng
+46	Chương trình cử nhân chính quy quốc tế
+47	Y sinh
+48	Vật lý
+
+
+Phân tích tên ngành nghê và dựa vào bảng major_category để xác định id của ngành học liên quan nhất với vị trí việc làm sau khi tốt nghiệp,
+nếu không tìm được ngành thích hợp thì trả về 49.
+Công việc:

@@ -16,7 +16,18 @@ sys.path.append(str(Path(__file__).resolve().parent / "utils"))
 
 facebook = import_module("facebook")
 
+def saveCookieFacebook(driver):
+    driver.get("https://www.facebook.com/login/")
+    sleep(180)
 
+    pickle.dump(driver.get_cookies(), open("cookies_fb.pkl", "wb"))
+    driver.close()
+
+def saveCookieVieclam24h(driver):
+    driver.get("https://vieclam24h.vn/")
+    sleep(80)
+    pickle.dump(driver.get_cookies(), open("cookies_vieclam24h.pkl", "wb"))
+    driver.close()
 def main():
     chrome_options = webdriver.ChromeOptions()
     # chrome_options.add_argument("--headless") # Not open chrome window
@@ -31,29 +42,15 @@ def main():
     # chromedriver_path = r"/app/crawl-data/chromedriver/chromedriver-linux64/chromedriver.exe"
     # print(chromedriver_path)
     try:
-        print("==================")
+        print("======== SAVE COOKIE ==========")
         service = Service(
             executable_path="/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver"
         )
         # with webdriver.Chrome(options=chrome_options, executable_path='/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver') as driver:
         driver = webdriver.Chrome(service=service, options=chrome_options)
-        # driver.get("https://www.facebook.com/login/")
-        driver.get("https://topdev.vn/viec-lam-it?src=topdev.vn&medium=mainmenu")
-        page_source = BeautifulSoup(driver.page_source, 'html.parser')
-        sleep(4500)
-        # userNAME = driver.find_element(By.ID, "email")
-        # userNAME.send_keys("vanthanhhuynhctc@gmail.com")
+        # driver.get("https://topdev.vn/viec-lam-it?src=topdev.vn&medium=mainmenu")
+        saveCookieVieclam24h(driver)
 
-        # passWork = driver.find_element(By.ID, "pass")
-        # passWork.send_keys("huynhvanthanh")
-
-        # passWork.send_keys(Keys.ENTER)
-
-        sleep(4)
-
-        pickle.dump(driver.get_cookies(), open("cookies_test.pkl", "wb"))
-        driver.close()
-        # save_data_into_DB(data)
     except Exception as e:
         logger.error(f"Error occurred while scraping data: {e}")
     print(">> Done")
