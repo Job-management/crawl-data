@@ -1,17 +1,15 @@
 import random
 from datetime import datetime
 from venv import logger
-from bs4 import BeautifulSoup
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from pathlib import Path
 from importlib import import_module
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import wait
-from selenium.webdriver.support import expected_conditions as EC
 import json
-
+import uuid
+from urllib.parse import urlparse
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent / "../../modules"))
@@ -85,7 +83,7 @@ def get_content(driver):
                     ):
                         continue
                     img_url = img.get_attribute("src")
-                    img_alt = img.get_attribute("alt")
+                    img_alt = uuid.uuid4()
                     images.append({"link": img_url, "description": img_alt})
                 data["images"] = json.dumps(images)
             print(data)
@@ -316,7 +314,7 @@ def get_content_v2(postContainer, driver):
                     ):
                         continue
                     img_url = img.get_attribute("src")
-                    img_alt = img.get_attribute("alt")
+                    img_alt = "alt images"
                     images.append({"link": img_url, "description": img_alt})
                 data["images"] = json.dumps(images)
             print(data)
@@ -349,6 +347,7 @@ def get_content_v2(postContainer, driver):
 
 def get_facebook_posts(driver):
     feeds = driver.find_elements(By.CSS_SELECTOR, '.x1yztbdb.x1n2onr6.xh8yej3.x1ja2u2z')
+    sleep(0.5)
     print(len(feeds))
     index = 0
     scrolled = False
@@ -362,7 +361,9 @@ def get_facebook_posts(driver):
         if index >= len(feeds):
             canNotGetMorePostCount += 1
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sleep(1)
+            sleep(0.5)
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 500);")
+            sleep(random.randint(9, 12))
             feeds = driver.find_elements(By.CSS_SELECTOR, '.x1yztbdb.x1n2onr6.xh8yej3.x1ja2u2z')
             continue
 
@@ -371,7 +372,9 @@ def get_facebook_posts(driver):
         if not postWrap:
             canNotGetMorePostCount += 1
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sleep(1)
+            sleep(0.5)
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 500);")
+            sleep(random.randint(9, 12))
             feeds = driver.find_elements(By.CSS_SELECTOR, '.x1yztbdb.x1n2onr6.xh8yej3.x1ja2u2z')
             continue
 
@@ -389,10 +392,12 @@ def get_facebook_posts(driver):
             continue
 
         post = postWrap.find_element(By.CSS_SELECTOR, '.html-div > .html-div')
-        print('lấy thông tin của post', index, post.get_attribute('outerHTML'))
 
         data = get_content_by_post(post, driver)
+
+        print('lấy thông tin của post', index, post.get_attribute('outerHTML'))
         if "text" in data and "time" in data:
+            print('push to queue: ', data)
             rabbitMQChannel.publishMessage(data, "raw-data")
         index += 1
 
@@ -420,7 +425,7 @@ def get_content_by_post(post, driver):
         sleep(0.5)
         if post_link:
             link = post_link.get_attribute("href")
-            data["link"] = link
+            data["link"] = get_main_url(link)
         # handle hover to date post and get post created date
         actions = ActionChains(driver)
         sleep(0.5)
@@ -449,7 +454,7 @@ def get_content_by_post(post, driver):
                 ):
                     continue
                 img_url = img.get_attribute("src")
-                img_alt = img.get_attribute("alt")
+                img_alt = "description"
                 images.append({"link": img_url, "description": img_alt})
             data["images"] = json.dumps(images)
         see_more_btns = post_text.find_elements(
@@ -471,3 +476,9 @@ def get_content_by_post(post, driver):
         logger.error("Lỗi get data")
 
     return data
+
+
+def get_main_url(link):
+
+    parsed_url = urlparse(link)
+    return 'https://' + parsed_url.hostname + parsed_url.path
