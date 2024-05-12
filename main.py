@@ -48,7 +48,7 @@ def main():
     chrome_options.add_argument("--remote-debugging-port=9222")  # This is recommended
     # Set path to Chrome binary
     chrome_options.binary_location = "/Volumes/Data/job-management/crawl-data/chrome-mac-arm64/chrome.app/Contents/MacOS/Google Chrome for Testing"
-    # chromedriver_path = r"/app/crawl-data/chromedriver/chromedriver-linux64/chromedriver.exe"
+    # chromedriver_path  g = r"/app/crawl-data/chromedriver/chromedriver-linux64/chromedriver.exe"
     # print(chromedriver_path)
     try:
         print("==================")
@@ -59,11 +59,11 @@ def main():
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
         # Handle crawl facebook
-        # crawl_facebook(driver)
+        crawl_facebook(driver)
 
         #  Handle crawl vieclam24
-        data = crawl_vieclam24h(driver)
-        save_data_into_DB(data)
+        # data = crawl_vieclam24h(driver)
+        # save_data_into_DB(data)
 
         # Handle crawl topdev
         # data = get_job_topdev(driver)
