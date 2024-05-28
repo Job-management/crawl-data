@@ -1,5 +1,6 @@
 import concurrent.futures
 from venv import logger
+from fastapi import FastAPI, HTTPException
 import threading
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -35,7 +36,13 @@ def crawl_vieclam24h(driver):
     return get_vieclam24(driver, 3)
     # facebook.get_facebook(driver, "https://www.facebook.com/kenhtuyendungdanang")
 
-
+def crawl_topdev(driver):
+    driver.get("https://topdep.vn/")
+    sleep(3)
+    cookies = pickle.load(open("cookies_topdev.pkl", "rb"))
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+    # return get_vieclam24(driver, 3)
 
 def main():
     chrome_options = webdriver.ChromeOptions()
@@ -59,17 +66,17 @@ def main():
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
         # Handle crawl facebook
-        crawl_facebook(driver)
+        # crawl_facebook(driver)
 
         #  Handle crawl vieclam24
-        # data = crawl_vieclam24h(driver)
-        # save_data_into_DB(data)
+        data = crawl_vieclam24h(driver)
+        save_data_into_DB(data)
 
         # Handle crawl topdev
         # data = get_job_topdev(driver)
         # save_data_into_DB(data)
         # sleep(3)
-        driver.close()
+        # driver.close()
     except Exception as e:
         logger.error(f"Error occurred while scraping data: {str(e)}")
     print(">> Done")

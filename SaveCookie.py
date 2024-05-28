@@ -49,8 +49,8 @@ def main():
         # with webdriver.Chrome(options=chrome_options, executable_path='/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver') as driver:
         driver = webdriver.Chrome(service=service, options=chrome_options)
         # driver.get("https://topdev.vn/viec-lam-it?src=topdev.vn&medium=mainmenu")
-        saveCookieVieclam24h(driver)
-
+        # saveCookieVieclam24h(driver)
+        saveCookieFacebook(driver)
     except Exception as e:
         logger.error(f"Error occurred while scraping data: {e}")
     print(">> Done")
