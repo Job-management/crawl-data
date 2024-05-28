@@ -55,18 +55,19 @@ def get_content(driver):
                 data["link"] = link
             print(data)
             # handle hover to date post and get post created date
-            actions = ActionChains(driver)
-            sleep(0.5)
-            actions.move_to_element(post_link).perform()
-            sleep(random.randint(1, 2))
+            # actions = ActionChains(driver)
+            # sleep(0.5)
+            # actions.move_to_element(post_link).perform()
+            # sleep(random.randint(1, 2))
 
-            post_created_at = driver.find_element(
-                By.CSS_SELECTOR,
-                ".x193iq5w.xeuugli.x13faqbe.x1vvkbs.xlh3980.xvmahel.x1n0sxbx.x1nxh6w3.x1sibtaa.xo1l8bm.xzsf02u",
-            )
+            # post_created_at = driver.find_element(
+            #     By.CSS_SELECTOR,
+            #     ".x193iq5w.xeuugli.x13faqbe.x1vvkbs.xlh3980.xvmahel.x1n0sxbx.x1nxh6w3.x1sibtaa.xo1l8bm.xzsf02u",
+            # )
+            post_created_at = post_link.get_attribute("aria-label");
             sleep(0.5)
             if post_created_at:
-                post_created_at_str = post_created_at.text
+                post_created_at_str = post_created_at
                 data["time"] = date_string_to_timestamp(post_created_at_str)
             print(data)
             # handle get post image
@@ -183,7 +184,7 @@ def get_posts(driver):
 
 def get_facebook(driver, group_url):
     try:
-        rabbitMQChannel = rabbitmq.RabbitMQChannel()
+        # rabbitMQChannel = rabbitmq.RabbitMQChannel()
         url = group_url
         driver.get(url)
         sleep(3)
@@ -204,7 +205,7 @@ def get_facebook(driver, group_url):
 
 def date_string_to_timestamp(date_string):
     parts = date_string.split(" ")
-
+    print(parts)
     # Lấy các thành phần của ngày, tháng, năm và thời gian
     day = int(parts[1])
     month = parts[2]
@@ -420,7 +421,7 @@ def get_content_by_post(post, driver):
 
         post_link = post.find_element(
             By.CSS_SELECTOR,
-            ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.xt0b8zv.xo1l8bm",
+            ".x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x1heor9g.x1sur9pj.xkrqix3.xo1l8bm",
         )
         sleep(0.5)
         if post_link:
@@ -472,7 +473,7 @@ def get_content_by_post(post, driver):
             sleep(0.5)
             # Get new post text after click see more button
             data["text"] = post_text.text
-    except:
+    except Exception as e:
         logger.error("Lỗi get data")
 
     return data
