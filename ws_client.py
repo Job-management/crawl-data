@@ -14,7 +14,7 @@ def on_open(ws):
 
 def run():
     ws = websocket.WebSocketApp(
-        "ws://localhost:8002/ws/1",
+        "ws://localhost:8002/socket.io",
         on_message=on_message,
         on_error=on_error,
         on_close=on_close,
