@@ -9,6 +9,7 @@ from get_24 import get_company_name_24, get_title_24, get_job_24, get_headquater
     get_Time_24, get_Place_24, get_Age_24, get_probation, get_Sex_24, get_Way_24, get_right_24
 from ai import detect
 from urllib.parse import urlparse
+from ws_handler import sio
 
 
 def get_profile_urls_24(driver, url):
@@ -80,22 +81,22 @@ def is_duplicated(info, data):
     return False
 
 
-async def get_vieclam24(driver, num_pages, manager):
+async def get_vieclam24(driver, num_pages):
     try:
         page_start = 1
         data = []
         while page_start <= num_pages:
             url = f'https://vieclam24h.vn/tim-kiem-viec-lam-nhanh?page={page_start}&sort_q='
             print('>>>URL', url)
-            await manager.broadcast(str(url))
+            await sio.emit('log', url)
             driver.get(url)
             sleep(2)
             profile_urls = get_profile_urls_24(driver, url)
             data_DB = get_data_from_DB("root", "root@")
             for _url in profile_urls:
                 info = get_profile_info_24(driver, _url)
-                print('>> Vieclam24:', info)
-                await manager.broadcast(str(info))
+                print('>> Vieclam24:', str(info))
+                await sio.emit('log', str(info))
                 if info == []:
                     pass
                 else:
@@ -108,7 +109,6 @@ async def get_vieclam24(driver, num_pages, manager):
         return data
     except Exception as e:
         print(f"Error occurred while get data 24h: {e}")
-        await manager.broadcast(str(e))
         return []
 
 
