@@ -11,6 +11,7 @@ import json
 import uuid
 from urllib.parse import urlparse
 import sys
+from ws_handler import sio
 
 sys.path.append(str(Path(__file__).resolve().parent / "../../modules"))
 
@@ -182,7 +183,7 @@ def get_posts(driver):
         return []
 
 
-def get_facebook(driver, group_url):
+async def get_facebook(driver, group_url):
     try:
         # rabbitMQChannel = rabbitmq.RabbitMQChannel()
         url = group_url
@@ -191,7 +192,7 @@ def get_facebook(driver, group_url):
 
         # posts = get_posts(driver)
         # posts = croll_and_get_elements(driver, 15)
-        get_facebook_posts(driver)
+        await get_facebook_posts(driver)
         # print(posts)
         #
         # print(len(posts))
@@ -200,6 +201,7 @@ def get_facebook(driver, group_url):
         #     rabbitMQChannel.publishMessage(post, "raw-data")
     except Exception as e:
         print(f"Error occurred while get data facebook: {e}")
+        await sio.emit('log_fb', f"Error occurred while get data facebook: {e}")
         return []
 
 
@@ -346,7 +348,7 @@ def get_content_v2(postContainer, driver):
                     contents.append(data)
     return contents
 
-def get_facebook_posts(driver):
+async def get_facebook_posts(driver):
     feeds = driver.find_elements(By.CSS_SELECTOR, '.x1yztbdb.x1n2onr6.xh8yej3.x1ja2u2z')
     sleep(0.5)
     print(len(feeds))
@@ -357,6 +359,7 @@ def get_facebook_posts(driver):
     while True:
         if canNotGetMorePostCount >= 2:
             print('hết post')
+            await sio.emit('log_fb', 'hết post')
             break
 
         if index >= len(feeds):
@@ -397,8 +400,12 @@ def get_facebook_posts(driver):
         data = get_content_by_post(post, driver)
 
         print('lấy thông tin của post', index, post.get_attribute('outerHTML'))
+        message_sk = 'lấy thông tin của post' + ' ' + str(index) + ' ' + post.get_attribute('outerHTML')
+        await sio.emit('log_fb', message_sk)
         if "text" in data and "time" in data:
             print('push to queue: ', data)
+            message_sk = 'push to queue: ' + str(data)
+            await sio.emit('log_fb', message_sk)
             rabbitMQChannel.publishMessage(data, "raw-data")
         index += 1
 

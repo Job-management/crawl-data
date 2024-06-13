@@ -36,13 +36,13 @@ facebook = import_module("facebook")
 async def startup_event():
     print("Starting up the server")
 
-def crawl_facebook(driver):
+async def crawl_facebook(driver):
     driver.get("https://www.facebook.com/login/")
     sleep(3)
     cookies = pickle.load(open("cookies_fb.pkl", "rb"))
     for cookie in cookies:
         driver.add_cookie(cookie)
-    facebook.get_facebook(driver, "https://www.facebook.com/groups/vieclamCNTTDaNang")
+    await facebook.get_facebook(driver, "https://www.facebook.com/groups/vieclamCNTTDaNang")
 
 async def crawl_vieclam24h(driver):
     driver.get("https://vieclam24h.vn/")
@@ -85,6 +85,41 @@ async def _start_vieclam24h():
         print(f"Error occurred while scraping data: {str(e)}")
 
     print(">> Done")
+    await sio.emit('log', "Crawl done")
+    crawl_status = "READY"
+    status_handler.set_status(crawl_status)
+    await sio.emit('current_status', crawl_status)
+
+
+async def _start_facebook():
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--remote-debugging-port=9222")
+    chrome_options.binary_location = "/Volumes/Data/job-management/crawl-data/chrome-mac-arm64/chrome.app/Contents/MacOS/Google Chrome for Testing"
+    try:
+        crawl_status = "PROCESSING"
+        status_handler.set_status(crawl_status)
+        await sio.emit('current_status', crawl_status)
+        service = Service(
+            executable_path="/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver"
+        )
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        await crawl_facebook(driver)
+
+        await sio.emit('broadcast', "END")
+    except Exception as e:
+        await sio.emit('broadcast', str(e))
+        print(f"Error occurred while scraping data: {str(e)}")
+
+    print(">> Done")
+    await sio.emit('log_fb', "Crawl done")
+    crawl_status = "READY"
+    status_handler.set_status(crawl_status)
+    await sio.emit('current_status', crawl_status)
 
 @app.post("/crawl")
 async def crawl(request: CrawlRequest, background_tasks: BackgroundTasks):
@@ -97,6 +132,17 @@ async def crawl(request: CrawlRequest, background_tasks: BackgroundTasks):
             await sio.emit('log', "LOG:: Crawl vieclam24h starting...")
             await sio.emit('current_status', crawl_status)
             background_tasks.add_task(_start_vieclam24h)
+            return {"message": "Crawling started"}
+        else:
+            return {"message": "Crawling is processing"}
+    elif type == "facebook":
+        if status_handler.get_status() != "PROCESSING":
+            print('crawling facebook')
+            crawl_status = "PROCESSING"
+            status_handler.set_status(crawl_status)
+            await sio.emit('log_fb', "LOG:: Crawl facebook starting...")
+            await sio.emit('current_status', crawl_status)
+            background_tasks.add_task(_start_facebook)
             return {"message": "Crawling started"}
         else:
             return {"message": "Crawling is processing"}
