@@ -14,6 +14,8 @@ import concurrent.futures
 from Get_info import get_vieclam24
 from DB import save_data_into_DB
 from ws_handler import sio, socket_app, status_handler
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 app = FastAPI(title="HANDLE CRAWL DATA")
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
@@ -66,14 +68,13 @@ async def _start_vieclam24h():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--remote-debugging-port=9222")
-    chrome_options.binary_location = "/Volumes/Data/job-management/crawl-data/chrome-mac-arm64/chrome.app/Contents/MacOS/Google Chrome for Testing"
     try:
         crawl_status = "PROCESSING"
         status_handler.set_status(crawl_status)
         await sio.emit('current_status', crawl_status)
-        service = Service(
-            executable_path="/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver"
-        )
+
+        # Use ChromeDriverManager to manage the ChromeDriver
+        service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
         data = await crawl_vieclam24h(driver)
@@ -98,14 +99,13 @@ async def _start_facebook():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--remote-debugging-port=9222")
-    chrome_options.binary_location = "/Volumes/Data/job-management/crawl-data/chrome-mac-arm64/chrome.app/Contents/MacOS/Google Chrome for Testing"
     try:
         crawl_status = "PROCESSING"
         status_handler.set_status(crawl_status)
         await sio.emit('current_status', crawl_status)
-        service = Service(
-            executable_path="/Volumes/Data/job-management/crawl-data/chromedriver_mac_arm64/chromedriver"
-        )
+
+        # Use ChromeDriverManager to manage the ChromeDriver
+        service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
         await crawl_facebook(driver)
