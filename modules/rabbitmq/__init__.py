@@ -11,7 +11,7 @@ class RabbitMQChannel:
                 pika.ConnectionParameters(host="localhost", port=5672)
             )
             cls._instance._channel = cls._instance._connection.channel()
-            cls._instance._channel.queue_declare(queue="raw-data", durable=True)
+            cls._instance._channel.queue_declare(queue="raw-data")
         return cls._instance
 
     @property
