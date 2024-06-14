@@ -400,7 +400,8 @@ async def get_facebook_posts(driver):
         data = get_content_by_post(post, driver)
 
         print('lấy thông tin của post', index, post.get_attribute('outerHTML'))
-        message_sk = 'lấy thông tin của post' + ' ' + str(index) + ' ' + post.get_attribute('outerHTML')
+        print(data)
+        message_sk = 'lấy thông tin của post' + ' ' + str(index)
         await sio.emit('log_fb', message_sk)
         if "text" in data and "time" in data:
             print('push to queue: ', data)
