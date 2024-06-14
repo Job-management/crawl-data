@@ -1,11 +1,11 @@
 import mysql.connector
 from venv import logger
-
+import os
 
 def save_data_into_DB(data):
     try:
         connection = mysql.connector.connect(
-            user="root", password="root@", host="localhost", database="job-management"
+            user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST'), database="job-management"
         )
         cursor = connection.cursor()
         query = "INSERT INTO `job-management`.`crawl_data` (`title`, `company`, `time`, `city`, `age`, `sexual`, `probationTime`, `workWay`, `job`, `place`, `numberEmployees`, `experience`, `level`, `salary`, `education`, `right`, `description`, `requirements`, `deadline`, `images`, `link`, `type`, `major_category_id`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -19,7 +19,7 @@ def save_data_into_DB(data):
 def is_duplicate_data(link):
     try:
         connection = mysql.connector.connect(
-            user="root", password="root@", host="localhost", database="job-management"
+            user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST'), database="job-management"
         )
         cursor = connection.cursor()
         query = "SELECT * FROM `crawl_data` WHERE `link` = %s"
@@ -36,10 +36,10 @@ def get_data_from_DB(my_user, my_password):
         # create_database_if_not_exists(my_user, my_password)
         # create_table_if_not_exists(my_user, my_password)
         connection = mysql.connector.connect(
-            user="root", password="root@", host="localhost"
+            user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST'), database="job-management"
         )
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM `job-management`.`crawl_data`")
+        cursor.execute("SELECT * FROM `crawl_data`")
         data = cursor.fetchall()
         connection.close()
         return data
@@ -51,10 +51,10 @@ def get_data_from_DB(my_user, my_password):
 def create_database_if_not_exists(my_user, my_password):
     try:
         connection = mysql.connector.connect(
-            user="root", password="root@", host="localhost", database="job-management"
+            user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), host=os.getenv('DB_HOST'), database="job-management"
         )
         cursor = connection.cursor()
-        cursor.execute("SELECT * FROM `job-management`.`crawl_data`")
+        cursor.execute("SELECT * FROM crawl_data`")
         data = cursor.fetchall()
         connection.close()
         return data

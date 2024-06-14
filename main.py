@@ -121,7 +121,7 @@ async def _start_facebook():
     status_handler.set_status(crawl_status)
     await sio.emit('current_status', crawl_status)
 
-@app.post("/crawl")
+@app.post("/crawl/trigger")
 async def crawl(request: CrawlRequest, background_tasks: BackgroundTasks):
     type = request.type.lower()
     if type == "vieclam24h":
@@ -147,8 +147,12 @@ async def crawl(request: CrawlRequest, background_tasks: BackgroundTasks):
         else:
             return {"message": "Crawling is processing"}
 
+@app.get("/crawl/whoami")
+async def whoami():
+    return "CRAWL DATA SERVER"
+
 # Mount the socket_app under the same app instance
-app.mount("/", socket_app)
+app.mount("/crawl", socket_app)
 
 if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=8002, debug=True, reload=True)
