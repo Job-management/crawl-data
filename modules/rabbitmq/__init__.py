@@ -8,7 +8,7 @@ class RabbitMQChannel:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host="localhost", port=5672)
+                pika.ConnectionParameters(host="20.187.148.159", port=5672)
             )
             cls._instance._channel = cls._instance._connection.channel()
             cls._instance._channel.queue_declare(queue="raw-data")
